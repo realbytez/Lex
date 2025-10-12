@@ -1,25 +1,27 @@
 export default async function handler(req, res) {
   const projectId = "testprojfr";
   const apiKey = "AIzaSyCu9kLqzd-Xfm23GhY4kUuPRyi1kiztjTg";
-  const docPath = "options/option1";
 
-  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${docPath}?key=${apiKey}`;
+  // Read blackscreen
+  const blackscreenUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/options/option1?key=${apiKey}`;
+  // Read players
+  const playersUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/options/playersOnline?key=${apiKey}`;
 
   try {
-    const response = await fetch(url);
-    if (!response.ok) return res.status(response.status).json({ error: "Failed to fetch data" });
+    const [bsRes, plRes] = await Promise.all([fetch(blackscreenUrl), fetch(playersUrl)]);
+    const bsData = await bsRes.json();
+    const plData = await plRes.json();
 
-    const data = await response.json();
+    const blackscreen = bsData.fields?.blackscreen?.booleanValue || false;
 
-    const plain = {};
-    for (const [key, value] of Object.entries(data.fields)) {
-      if (value.booleanValue !== undefined) plain[key] = value.booleanValue;
-      else if (value.stringValue !== undefined) plain[key] = value.stringValue;
-      else if (value.integerValue !== undefined) plain[key] = parseInt(value.integerValue);
-      else if (value.doubleValue !== undefined) plain[key] = value.doubleValue;
+    const playersOnline = {};
+    if (plData.fields?.playersOnline?.mapValue?.fields) {
+      for (const [player, val] of Object.entries(plData.fields.playersOnline.mapValue.fields)) {
+        if (val.booleanValue) playersOnline[player] = true;
+      }
     }
 
-    res.status(200).json(plain);
+    res.status(200).json({ blackscreen, playersOnline });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
