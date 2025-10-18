@@ -1,36 +1,37 @@
 import admin from "firebase-admin";
 
-// Initialize Firebase Admin if not already
 let app;
-if (!admin.apps.length) {
-  try {
+try {
+  if (!admin.apps.length) {
     const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
     app = admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
     });
     console.log("Firebase initialized successfully");
-  } catch (err) {
-    console.error("Failed to initialize Firebase:", err);
+  } else {
+    app = admin.app();
   }
-} else {
-  app = admin.app();
+} catch (err) {
+  console.error("Firebase initialization error:", err);
 }
 
 export default async function handler(req, res) {
   if (req.method === "POST") {
-    const { enabled } = req.body;
-
-    if (typeof enabled !== "boolean") {
-      return res.status(400).json({ error: "Invalid 'enabled' value, must be boolean" });
-    }
-
     try {
+      const { enabled } = req.body;
+      console.log("Received enabled value:", enabled);
+
+      if (typeof enabled !== "boolean") {
+        return res.status(400).json({ error: "Invalid 'enabled' value, must be boolean" });
+      }
+
       const db = admin.firestore();
       const docRef = db.doc("options/option1");
       await docRef.set({ blackscreen: enabled }, { merge: true });
+
       return res.status(200).json({ success: true, blackscreen: enabled });
     } catch (err) {
-      console.error("Firestore error:", err);
+      console.error("Firestore or server error:", err);
       return res.status(500).json({ error: err.message });
     }
   } else {
