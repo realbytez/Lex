@@ -1,39 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>BlackScreen Status JSON</title>
+  <meta charset="UTF-8">
+  <title>Toggle BlackScreen</title>
 </head>
 <body>
-    <h1>BlackScreen Status</h1>
-    <pre id="jsonOutput">Loading...</pre>
+  <h1>BlackScreen Toggle</h1>
+  <label>
+    <input type="checkbox" id="blackscreen"> Enable BlackScreen
+  </label>
 
-    <script>
-        const projectId = "testprojfr"; // replace with your project ID
-        const apiKey = "AIzaSyCu9kLqzd-Xfm23GhY4kUuPRyi1kiztjTg"; // replace with your API key
-        const docPath = "options/option1"; // document path
-        const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/${docPath}?key=${apiKey}`;
+  <script>
+    const checkbox = document.getElementById("blackscreen");
 
-        async function loadBlackScreenValue() {
-            try {
-                const res = await fetch(url);
-                const result = await res.json();
-
-                let blackscreenValue = false;
-                if (result.fields && result.fields.blackscreen) {
-                    blackscreenValue = result.fields.blackscreen.booleanValue;
-                }
-
-                // Display as raw JSON
-                const output = { blackscreen: blackscreenValue };
-                document.getElementById("jsonOutput").textContent = JSON.stringify(output, null, 2);
-
-            } catch (err) {
-                document.getElementById("jsonOutput").textContent = "Error fetching data: " + err;
-            }
-        }
-
-        loadBlackScreenValue();
-    </script>
+    checkbox.addEventListener("change", async () => {
+      const res = await fetch("/api/toggle", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled: checkbox.checked }),
+      });
+      const data = await res.json();
+      console.log(data);
+    });
+  </script>
 </body>
 </html>
