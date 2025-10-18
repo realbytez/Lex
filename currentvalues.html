@@ -13,14 +13,19 @@
   <script>
     const checkbox = document.getElementById("blackscreen");
 
+    // Send toggle to server
     checkbox.addEventListener("change", async () => {
-      const res = await fetch("/api/toggle", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ enabled: checkbox.checked }),
-      });
-      const data = await res.json();
-      console.log(data);
+      try {
+        const res = await fetch("/api/toggle", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ enabled: checkbox.checked })
+        });
+        const data = await res.json();
+        console.log("Server response:", data);
+      } catch (err) {
+        console.error("Failed to update:", err);
+      }
     });
   </script>
 </body>
